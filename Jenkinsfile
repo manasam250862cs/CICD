@@ -1,3 +1,4 @@
+
 pipeline {
     agent any
 
@@ -6,12 +7,15 @@ pipeline {
     }
 
     stages {
+
+        // Stage 1: Checkout source code from GitHub
         stage('Checkout') {
             steps {
                 checkout scm
             }
         }
 
+        // Stage 2: Install Python dependencies
         stage('Install Dependencies') {
             steps {
                 sh '''
@@ -21,12 +25,14 @@ pipeline {
             }
         }
 
+        // Stage 3: Run unit tests
         stage('Run Tests') {
             steps {
                 sh '.venv/bin/pytest -v'
             }
         }
 
+        // Stage 4: Build Docker image
         stage('Build Docker Image') {
             steps {
                 sh '''
@@ -35,22 +41,37 @@ pipeline {
                 '''
             }
         }
-stage('Push to Docker Hub') {
-    steps {
-        withCredentials([usernamePassword(
-            credentialsId: 'dockerhub-creds',
-            usernameVariable: 'DOCKER_USER',
-            passwordVariable: 'DOCKER_PASS'
-        )]) {
-            sh '''
-                echo "$DOCKER_PASS" | docker login \
-                    -u "$DOCKER_USER" --password-stdin
 
-                docker push $IMAGE_NAME:$BUILD_NUMBER
-                docker push $IMAGE_NAME:latest
+        // Stage 5: Push Docker image to Docker Hub
+        stage('Push to Docker Hub') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-creds',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh '''
+                        echo "$DOCKER_PASS" | docker login \
+                            -u "$DOCKER_USER" --password-stdin
 
-                docker logout
-            '''
+                        docker push $IMAGE_NAME:$BUILD_NUMBER
+                        docker push $IMAGE_NAME:latest
+
+                        docker logout
+                    '''
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'CI pipeline completed successfully!'
+        }
+
+        failure {
+            echo 'Pipeline failed. Please check the Console Output.'
         }
     }
 }
+
