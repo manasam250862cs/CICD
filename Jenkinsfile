@@ -63,7 +63,15 @@ pipeline {
             }
         }
     }
-
+    // Stage 6: Deploy application using Ansible
+        stage('Deploy with Ansible') {
+            steps {
+                sh '''
+                    ansible-playbook -i ansible/inventory ansible/deploy.yml
+                '''
+            }
+        }
+    }
     post {
         success {
             echo 'CI pipeline completed successfully!'
