@@ -62,7 +62,6 @@ pipeline {
                 }
             }
         }
-    }
     // Stage 6: Deploy application using Ansible
         stage('Deploy with Ansible') {
             steps {
