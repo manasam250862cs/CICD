@@ -1,0 +1,26 @@
+---
+- name: Deploy Flask application locally
+  hosts: local
+  become: false
+
+  tasks:
+
+    - name: Pull latest Docker image
+      community.docker.docker_image:
+        name: manasa2514/cicd
+        tag: latest
+        source: pull
+
+    - name: Remove existing Flask container
+      community.docker.docker_container:
+        name: flask-app
+        state: absent
+
+    - name: Start Flask application container
+      community.docker.docker_container:
+        name: flask-app
+        image: manasa2514/cicd:latest
+        state: started
+        restart_policy: always
+        ports:
+          - "5000:5000"
